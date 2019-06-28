@@ -170,7 +170,7 @@ We have to download it manually and copy it to the respective repositories.
 
 ### Install tpm2-abrmd
     cd tpm2-abrmd
-    git checkout 2.2.1
+    git checkout 2.1.1
     ./bootstrap -I m4
     ./configure --with-dbuspolicydir=/etc/dbus-1/system.d \
       --with-systemdsystemunitdir=/lib/systemd/system \

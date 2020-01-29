@@ -1,10 +1,11 @@
-# AWS IoT Greengrass Hardware Security Integration: Enable Support for Infineon OPTIGA&trade; TPM SLx 9670
+# AWS IoT Greengrass Hardware Security Integration: Provide hardware-based endpoint device security with Infineon's OPTIGA&trade; TPM SLx 9670
+
 
 ## Introduction
 
 This document contains step-by-step instructions on how to setup the Open Source TPM Software Stack 2.0 (TSS 2.0)
 in combination with the tpm2-pkcs11 provider and related software on a Raspberry Pi&reg; 3 Linux environment to use the
-Trusted Platform Module OPTIGA&trade; TPM SLx 9670 TPM2.0 from Infineon Technologies as a Hardware Security Module (HSM) for AWS IoT Grengrass
+Trusted Platform Module OPTIGA&trade; TPM SLx 9670 TPM2.0 from Infineon Technologies as a Hardware Security Module (HSM) for AWS IoT Greengrass
 using the PKCS#11 Hardware Security Integration (HSI).
 
 The OPTIGA&trade; TPM SLx 9670 TPM2.0 product family with SPI interface consists of 3 different products:
@@ -13,7 +14,7 @@ The OPTIGA&trade; TPM SLx 9670 TPM2.0 product family with SPI interface consists
  * OPTIGA&trade; TPM SLI 9670, automotive security applications
  * OPTIGA&trade; TPM SLM 9670, industrial security applications
 
-We refer with "OPTIGA&trade; TPM SLx TPM2.0" to all of the above 3 members of the OPTIGA TPM2.0 product family with SPI interface.
+We refer with "OPTIGA&trade; TPM SLx TPM2.0" to all of the above 3 variants of the OPTIGA&trade; TPM2.0 product family with SPI interface.
 
 The described steps to use an OPTIGA&trade; TPM as a an Hardware Security Module for AWS IoT Greengrass on an Raspberry Pi&reg; 3 Linux Environment can be performed with one of the Infineon Iridium SLx 9670 TPM2.0 SPI Boards, listed in the Table below:
 
@@ -44,19 +45,18 @@ In case you are not yet familiar with AWS IoT Greengrass please have a look at:
 
 For more details on AWS IoT Greengrass HSI please refer to https://docs.aws.amazon.com/greengrass/latest/developerguide/hardware-security.html.
 
-It is strongly recommended to follow the AWS IoT Greengrass tutorial before enabling the TPM HSI support using this guide.
+It is strongly recommended to follow the AWS IoT Greengrass tutorial before using this guide to support the use of OPTIGA&trade; TPM with HSI
+
 
 
 ### Quality and Limitations:
-These instructions refers to software that is currently under implementation and can be considered as a public preview in beta quality.
-
 The PKCS11 Library (tpm2-pkcs11) and the underlying TPM2 Software Stack (tpm2-tss) are part of the Open Source Project http://tpm2-software.github.io 
 which is supported, developed and sponsored by Infineon and many others.
 
 The software:
 - is only tested to a limited extend and might not work as expected.
 - is provided as-is, without any waranty and liability.
-- provides the minimum required functionality for __Greengrass Device Tester 1.3.1__ and __IoT Greengrass 1.8.x and 1.9.x__
+- provides the required functionality for __Greengrass Device Tester 1.3.1__ and __IoT Greengrass 1.8.x and 1.9.x__
 - has NOT been tested for any additional functionality.
 
 Only RSA 2K Keys and ECC_NIST_P256 keys are supported.
@@ -64,7 +64,7 @@ Only RSA 2K Keys and ECC_NIST_P256 keys are supported.
 ## Preparation and Hardware Setup
 
 - Download latest Raspbian (2018-11) and flash onto SD Card.
-- Plugin Optiga TPM SLx 9670 Iridium Board on Raspberry Pi Header.
+- Plugin OPTIGA&trade; TPM SLx 9670 Iridium Board on Raspberry Pi Header.
   - The chips must be facing the outside of the Raspberry Pi.
   - Pin 1 of the Iridium must align with Pin 1 of the Raspberry Pi.
   - Pin 1 is also marked by a rectangular solder pad on the Iridium board.
@@ -104,7 +104,7 @@ The output should look similar to this:
     TPM_PT_VENDOR_TPM_TYPE:         0
     TPM_PT_FIRMWARE_VERSION:        13.11.4555.0
 
-This means your Optiga TPM works as expected.
+This means your OPTIGA&trade; TPM works as expected.
 It also shows the Firmware Version of the TPM.
 
 

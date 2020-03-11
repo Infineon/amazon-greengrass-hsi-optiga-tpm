@@ -386,7 +386,3 @@ For further information on the product, technology, delivery terms and condition
 Due to technical requirements products may contain dangerous substances. For information on the types in question please contact your nearest Infineon Technologies office.
 
 Except as otherwise explicitly approved by Infineon Technologies in a written document signed by authorized representatives of Infineon Technologies, Infineon Technologies’ products may not be used in any applications where a failure of the product or any consequences of the use thereof can reasonably be expected to result in personal injury.
-
-
-## In case of further questions:
-Please raise an issue on github or contact dsscustomerservice@infineon.com

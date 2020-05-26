@@ -56,14 +56,14 @@ which is supported, developed and sponsored by Infineon and many others.
 The software:
 - is only tested to a limited extend and might not work as expected.
 - is provided as-is, without any waranty and liability.
-- provides the required functionality for __Greengrass Device Tester 1.3.1__ and __IoT Greengrass 1.8.x and 1.9.x__
+- provides the required functionality for __Greengrass Device Tester 1.3.1__ and __IoT Greengrass 1.8.x, 1.9.x, 1.10.x__ 
 - has NOT been tested for any additional functionality.
 
 Only RSA 2K Keys and ECC_NIST_P256 keys are supported.
 
 ## Preparation and Hardware Setup
 
-- Download latest Raspbian (2018-11) and flash onto SD Card.
+- Download latest Raspbian (2020-02-13, Buster) and flash onto SD Card.
 - Plugin OPTIGA&trade; TPM SLx 9670 Iridium Board on Raspberry Pi Header.
   - The chips must be facing the outside of the Raspberry Pi.
   - Pin 1 of the Iridium must align with Pin 1 of the Raspberry Pi.
@@ -100,7 +100,7 @@ The output should look similar to this:
     TPM_PT_DAY_OF_YEAR:             8
     TPM_PT_YEAR:                    2018
     TPM_PT_MANUFACTURER:            IFX
-    TPM_PT_VENDOR_STRING:           SLI9670
+    TPM_PT_VENDOR_STRING:           SLM9670
     TPM_PT_VENDOR_TPM_TYPE:         0
     TPM_PT_FIRMWARE_VERSION:        13.11.4555.0
 
@@ -117,60 +117,32 @@ It also shows the Firmware Version of the TPM.
       libcmocka-dev net-tools build-essential git pkg-config gcc g++ m4 libtool \
       automake libgcrypt20-dev libssl-dev uthash-dev autoconf doxygen pandoc \
       libsqlite3-dev python-yaml p11-kit opensc gnutls-bin libp11-kit-dev \
-      python3-yaml cscope
+      python3-yaml cscope libp11-3 libp11-dev libjson-c-dev libyaml-dev
 
-    sudo apt-get build-dep libengine-pkcs11-openssl1.1
+
 
 ### Download Repositories
     git clone https://github.com/tpm2-software/tpm2-tss
     git clone https://github.com/tpm2-software/tpm2-tools
     git clone https://github.com/tpm2-software/tpm2-abrmd
     git clone https://github.com/tpm2-software/tpm2-pkcs11
-    git clone https://github.com/OpenSC/libp11.git
-
-
-### Install libp11 in a recent version
-Unfortunately the version of libp11 pkcs11 engine for openssl provided on Rasbian Stretch is too old (0.4.4) and not compatible with this software.
-So we have to install it manually from the repositories.
-
-Compile and install the correct version:
-
-    cd libp11
-    git checkout libp11-0.4.9
-    ./bootstrap
-    ./configure
-    make -j4
-    sudo make install
-    cd ..
-
-### Download autoconf-archive and deploy to the projects
-Unfortunately the version of autoconf-archive provided on Rasbian Stretch is too old and not compatible with this software.
-We have to download it manually and copy it to the respective repositories.
-
-
-    wget https://github.com/autoconf-archive/autoconf-archive/archive/v2018.03.13.tar.gz
-    tar -xvf v2018.03.13.tar.gz
-    cp -r autoconf-archive-2018.03.13/m4/ tpm2-tss/
-    cp -r autoconf-archive-2018.03.13/m4/ tpm2-abrmd/
-    cp -r autoconf-archive-2018.03.13/m4/ tpm2-tools/
-    cp -r autoconf-archive-2018.03.13/m4/ tpm2-pkcs11/
-
 
 ### Install tpm2-tss
     cd tpm2-tss
-    git checkout 740653a12e203b214cba2f07b5395ffce74dfc03
+    git checkout 2.4.x
     ./bootstrap -I m4
-    ./configure --with-udevrulesdir=/etc/udev/rules.d --with-udevrulesprefix=70-
+    ./configure --with-udevrulesdir=/etc/udev/rules.d --with-udevrulesprefix=70- --sysconfdir=/etc --localstatedir=/var --runstatedir=/run
     make -j4
     sudo make install
     sudo useradd --system --user-group tss
     sudo udevadm control --reload-rules && sudo udevadm trigger
     sudo ldconfig
+	mkdir -p ~/.local/share/tpm2-tss/user/keystore
     cd ..
 
 ### Install tpm2-abrmd
     cd tpm2-abrmd
-    git checkout 2.1.1
+    git checkout 2.3.2
     ./bootstrap -I m4
     ./configure --with-dbuspolicydir=/etc/dbus-1/system.d \
       --with-systemdsystemunitdir=/lib/systemd/system \
@@ -190,8 +162,8 @@ We have to download it manually and copy it to the respective repositories.
 
 ### Install tpm2-tools
     cd tpm2-tools
-    git checkout 3e8847c9a52a6adc80bcd66dc1321210611654be
-    ./bootstrap -I m4
+    git checkout 4.2.X
+    ./bootstrap
     ./configure
     make -j4
     sudo make install
@@ -201,8 +173,8 @@ We have to download it manually and copy it to the respective repositories.
     sudo mkdir -p /opt/tpm2-pkcs11
     sudo chmod 777 /opt/tpm2-pkcs11
     cd tpm2-pkcs11/
-    git checkout a82d0709c97c88cc2e457ba111b6f51f21c22260
-    ./bootstrap -I m4
+    git checkout 1.2.0
+    ./bootstrap 
     ./configure --enable-esapi-session-manage-flags --with-storedir=/opt/tpm2-pkcs11
     make -j4
     sudo make install
@@ -213,31 +185,31 @@ We have to download it manually and copy it to the respective repositories.
 
 In this example, the keystore is created under /opt/tpm2-pkcs11.
 It is assumed, that the location is read-/writeable to the user.
+It is advisable to set the location using the environment variable
+
+	export TPM2_PKCS11_STORE='/opt/tpm2-pkcs11/'
 
 ### Initializing Keystore and Token
     cd tpm2-pkcs11/tools/
+	
 
 #### Init Keystore
-    ./tpm2_ptool.py init --pobj-pin=123456 --path=/opt/tpm2-pkcs11/
+    ./tpm2_ptool init --path=/opt/tpm2-pkcs11/
 
 The used options are:
-
-    --pobj-pin POBJ_PIN   The authorization password for adding secondary objects under the primary object.
-    --path PATH           The location of the store directory.
+  --path PATH           	The location of the store directory.
 
 
 #### Init Token
-    ./tpm2_ptool.py addtoken --pid=1 --pobj-pin=123456 --sopin=123456 --userpin=123456 --label=greengrass --path=/opt/tpm2-pkcs11/
-
+    ./tpm2_ptool.py addtoken --pid=1 --sopin=123456 --userpin=123456 --label=greengrass --path=/opt/tpm2-pkcs11/
+    
 The used options are:
 
-      --pid PID             The primary object id to associate with this token.
-      --sopin SOPIN         The Administrator pin. This pin is used for object recovery.
-      --userpin USERPIN     The user pin. This pin is used for authentication for object use.
-      --pobj-pin POBJ_PIN   The primary object password. This password is use for authentication to the primary object.
-      --label LABEL         A unique label to identify the profile in use, must be unique.
-      --path PATH           The location of the store directory.
-
+	--pid PID          The primary object id to associate with this token.
+	--sopin SOPIN      The Administrator pin. This pin is used for object recovery.
+	--userpin USERPIN  The user pin. This pin is used for authentication for object use.
+	--label LABEL      A unique label to identify the profile in use, must be unique.
+	--path PATH        The location of the store directory
 
 #### Add a key:
     ./tpm2_ptool.py addkey --algorithm=rsa2048 --label=greengrass --userpin=123456 --key-label=greenkey --path=/opt/tpm2-pkcs11/
@@ -248,10 +220,8 @@ The used options are
     --sopin SOPIN         The Administrator pin.
     --userpin USERPIN     The User pin.
     --label LABEL         The tokens label to add a key too.
-    --algorithm {rsa2048,ecc256}
-                          The type of the key. Only RSA 2048 and ECC 256 are supported.
-    --key-label KEY_LABEL
-                          The key label to identify the key. Defaults to an integer value.
+    --algorithm {rsa2048,ecc256} The type of the key. Only RSA 2048 and ECC 256 are supported.
+    --key-label KEY_LABEL The key label to identify the key. Defaults to an integer value.
     --path PATH           The location of the store directory.
 
 ### Find out the P11/PKCS#11 URL
@@ -263,18 +233,29 @@ This URL can be determined using `p11tool`:
 This will yield a result similar to:
 
     pkcs11:model=p11-kit-trust;manufacturer=PKCS%2311%20Kit;serial=1;token=System%20Trust
-    pkcs11:model=SLI9670;manufacturer=Infineon;serial=0000000000000000;token=greengrass
+    pkcs11:model=SLM9670;manufacturer=Infineon;serial=0000000000000000;token=greengrass
+	pkcs11:model=SLM9670;manufacturer=Infineon;serial=0000000000000000;token=
 
 The URL for the private key can then be determined using:
 
-    p11tool --list-privkeys pkcs11:manufacturer=Infineon
-    Object 0:
-        URL: pkcs11:model=SLI9670;manufacturer=Infineon;serial=0000000000000000;token=greengrass;id=%37%33%61%36%62%30%31%37%39%66%39%33%39%38%62%38;object=greenkey;type=private
-        Type: Private key
+    p11tool --login --list-privkeys 'pkcs11:manufacturer=Infineon;token=greengrass'
+	Token 'greengrass' with URL 'pkcs11:model=SLM9670;manufacturer=Infineon;serial=0000000000000000;token=greengrass' requires user PIN
+	Enter PIN:
+	Object 0:
+        URL: pkcs11:model=SLM9670;manufacturer=Infineon;serial=0000000000000000;token=greengrass;id=%38%30%32%36%36%33%33%61%37%61%61%34%65%63%34%39;object=greenkey;type=private
+        Type: Private key (RSA-2048)
         Label: greenkey
-        Flags: CKA_NEVER_EXTRACTABLE; CKA_SENSITIVE;
-        ID: 37:33:61:36:62:30:31:37:39:66:39:33:39:38:62:38
+        Flags: CKA_PRIVATE; CKA_NEVER_EXTRACTABLE; CKA_SENSITIVE;
+        ID: 38:30:32:36:36:33:33:61:37:61:61:34:65:63:34:39
 
+If you receive error messages like
+
+	WARNING:esys:src/tss2-esys/api/Esys_TestParms.c:269:Esys_TestParms_Finish() Received TPM Error
+	ERROR:esys:src/tss2-esys/api/Esys_TestParms.c:95:Esys_TestParms() Esys Finish ErrorCode (0x000001c4)
+
+they can be safely ignored. The TPM2TestParms command is used to determine whether something is supported by the tpm (e.g. an algorithm)
+and returns the same error code as the original TPM command called with the same arguments, e.g. unsupported algorithm.
+Future versions of the tpm2-tss suppress these false positive error messages.
 
 The URL can be trimmed of certain components, as long as it remains unique, e.g.
 
@@ -289,7 +270,7 @@ This will be the URL we will use for the Greengrass configuration.
 
 ### Generate a Certificate Signing Request
 
-    openssl req -engine pkcs11 -new -key "pkcs11:model=SLI9670;manufacturer=Infineon;token=greengrass;object=greenkey;type=private;pin-value=123456" -keyform engine -out /tmp/req.csr
+	openssl req -engine pkcs11 -new -key "pkcs11:token=greengrass;object=greenkey;type=private;pin-value=123456" -keyform engine -out /tmp/req.csr
 
 Please answer the questions OpenSSL is asking you for the Certificate Signing Request - these information will be incorporated into the certificate.
 
@@ -320,12 +301,12 @@ For this we need to edit `/greengrass/config/config.json` and replace the config
             "principals": {
                 "IoTCertificate": {
                     "certificatePath": "file:///greengrass/certs/_xxxxxx_-certificate.pem.crt",
-                    "privateKeyPath": "pkcs11:model=SLI9670;manufacturer=Infineon;token=greengrass;object=greenkey;type=private;pin-value=123456"
+                    "privateKeyPath": "pkcs11:model=SLM9670;manufacturer=Infineon;token=greengrass;object=greenkey;type=private;pin-value=123456"
 
                 },
                 "MQTTServerCertificate": {
                     "certificatePath": "file:///greengrass/certs/_xxxxxx_-certificate.pem.crt",
-                    "privateKeyPath": "pkcs11:model=SLI9670;manufacturer=Infineon;token=greengrass;object=greenkey;type=private;pin-value=123456"
+                    "privateKeyPath": "pkcs11:model=SLM9670;manufacturer=Infineon;token=greengrass;object=greenkey;type=private;pin-value=123456"
                 }
             }
         },
@@ -345,6 +326,7 @@ For this we need to edit `/greengrass/config/config.json` and replace the config
 ```
 
 Please adjust the `certificatePath`, `privateKeyPath`, `thingArn` and `iotHost` accordingly.
+For more Information please have a look at https://docs.aws.amazon.com/greengrass/latest/developerguide/gg-core.html#config-json
 
 After this you can start your greengrass daemon as usual:
 
@@ -365,10 +347,23 @@ Please also ensure that the Iridium board is plugged in correctly.
 ### Debug PKCS11 Provider
 In order to enable more verbose logging an environment variable can be set:
 
-    TPM2_PKCS11_LOG_LEVEL=2
+    export TPM2_PKCS11_LOG_LEVEL=2
 
 Also the pkcs11-spy from libp11 can be used to get a deeper understanding of the PKCS#11 calls.
 
+### Problems during the installation / execution
+The setup has been tested on a Raspberry Pi 3B+, with Rasbian Buster (2020-02-13) - please re-test on this exact platform first.
+Older Raspbian versions might not work.
+
+### Esys_TestParms_Finish() Received TPM Error
+If you receive error messages like
+
+	WARNING:esys:src/tss2-esys/api/Esys_TestParms.c:269:Esys_TestParms_Finish() Received TPM Error
+	ERROR:esys:src/tss2-esys/api/Esys_TestParms.c:95:Esys_TestParms() Esys Finish ErrorCode (0x000001c4)
+
+they can be safely ignored. The TPM2TestParms command is used to determine whether something is supported by the tpm (e.g. an algorithm)
+and returns the same error code as the original TPM command called with the same arguments, e.g. unsupported algorithm.
+Future versions of the tpm2-tss suppress these false positive error messages.
 
 
 ## Trademarks

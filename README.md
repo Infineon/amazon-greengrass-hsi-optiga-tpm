@@ -259,11 +259,11 @@ Future versions of the tpm2-tss suppress these false positive error messages.
 
 The URL can be trimmed of certain components, as long as it remains unique, e.g.
 
-    pkcs11:model=SLI9670;manufacturer=Infineon;token=greengrass;object=greenkey;type=private
+    pkcs11:model=SLM9670;manufacturer=Infineon;token=greengrass;object=greenkey;type=private
 
 The Pin can be appended to the URL:
 
-    pkcs11:model=SLI9670;manufacturer=Infineon;token=greengrass;object=greenkey;type=private;pin-value=123456
+    pkcs11:model=SLM9670;manufacturer=Infineon;token=greengrass;object=greenkey;type=private;pin-value=123456
 
 This will be the URL we will use for the Greengrass configuration.
 
